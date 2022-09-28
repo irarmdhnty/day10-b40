@@ -160,8 +160,8 @@ func detail(w http.ResponseWriter, r *http.Request) {
 
 	id, _ := strconv.Atoi(mux.Vars(r)["id"])
 
-	err = connection.Conn.QueryRow(context.Background(), "SELECT id, name, start_date::timestamp::string, end_date::timestamp::string, description, technologies, duration FROM blog WHERE id=$1", id).Scan(
-		&Detail.ID, &Detail.Name, &Detail.StartDate, &Detail.EndDate, &Detail.Desc, &Detail.Technologies, &Detail.Duration)
+	err = connection.Conn.QueryRow(context.Background(), "SELECT id, name, start_date, end_date, description, technologies, duration FROM blog WHERE id=$1", id).Scan(
+		&Detail.ID, &Detail.Name, &Detail.Start_date, &Detail.End_date, &Detail.Desc, &Detail.Technologies, &Detail.Duration)
 
 	// fmt.Printf("%T %v", id, id)
 	// fmt.Println(err)
@@ -231,7 +231,7 @@ func editProject(w http.ResponseWriter, r *http.Request) {
 		duration = "0 Days"
 	}
 
-	_, err = connection.Conn.Exec(context.Background(), "UPDATE blog SET name=$1, start_date=$2, end_date=$3, description=$4, technologies=$5, duration=$6 WHERE id=$7", name, start_date, end_date, desc, technologies, duration, id)
+	_, err = connection.Conn.Exec(context.Background(), "UPDATE blog SET name=$1, start_date=$2, end_date=$3, description=$4, technologies=$5, duration=$6 WHERE id=$7", name, dateStart, dateEnd, desc, technologies, duration, id)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(err.Error()))
@@ -252,8 +252,8 @@ func update(w http.ResponseWriter, r *http.Request) {
 	var Edit = Project{}
 	id, _ := strconv.Atoi(mux.Vars(r)["id"])
 
-	err = connection.Conn.QueryRow(context.Background(), "SELECT id, name, start_date::varchar, end_date::varchar, description, duration FROM blog WHERE id=$1", id).Scan(
-		&Edit.ID, &Edit.Name, &Edit.StartDate, &Edit.EndDate, &Edit.Desc, &Edit.Duration)
+	err = connection.Conn.QueryRow(context.Background(), "SELECT id, name, start_date, end_date, description, duration FROM blog WHERE id=$1", id).Scan(
+		&Edit.ID, &Edit.Name, &Edit.Start_date, &Edit.End_date, &Edit.Desc, &Edit.Duration)
 
 	fmt.Println(Edit.Start_date)
 
