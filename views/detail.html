@@ -60,11 +60,11 @@
                     <div>
                         <p class="fw-bold fs-4">Duration</p>
                         <i class="fa-solid fa-lg fa-calendar-days"></i>
-                        <span>-</span>
+                        <span>{{.Details.Format_Start_date}} - {{.Details.Format_End_date}}</span>
                     </div>
                     <div>
                         <i class="fa-regular fa-lg fa-clock"></i>
-                        <span>-</span>
+                        <span>{{ .Details.Duration }}</span>
                     </div>
                     <div class="mt-4">
                         <p class="fw-bold fs-4">Technologies</p>
@@ -102,5 +102,6 @@
                 <p class="card-text mb-3">{{ .Details.Desc }}</p>
             </div>
         </div>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.1/dist/js/bootstrap.bundle.min.js"></script>
     </body>
 </html>

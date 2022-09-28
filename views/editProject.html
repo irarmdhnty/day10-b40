@@ -59,12 +59,12 @@
                             <label for="startDate" class="form-label mb-1 fw-bold">Start Date</label>
                             <input type="date" name="startDate" class="form-control shadow"
                                 placeholder="First name" aria-label="First
-                                name" id="startDate" value="{{ .Edit.Start_date }}" required>
+                                name" id="startDate" value="{{ .Edit.Format_Start_date }}" required>
                         </div>
                         <div class="col">
                             <label for="endDate" class="form-label mb-1 fw-bold">End Date</label>
                             <input type="date" name="endDate" class="form-control shadow"
-                                placeholder="Last name" aria-label="Last name" id="endDate" value="{{ .Edit.End_date }}" required>
+                                placeholder="Last name" aria-label="Last name" id="endDate" value="{{ .Edit.Format_End_date }}" required>
                         </div>
                     </div>
                     <div class="mb-3">
@@ -124,5 +124,6 @@
                 </form>
             </div>
         </div>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.1/dist/js/bootstrap.bundle.min.js"></script>
     </body>
 </html>

@@ -44,31 +44,26 @@ func home(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	data, _ := connection.Conn.Query(context.Background(), "SELECT id, name, start_date, end_date, description, technologies, duration FROM blog ORDER BY id")
+	data, _ := connection.Conn.Query(context.Background(), "SELECT id, name, description, technologies, duration FROM blog ORDER BY id DESC")
 
 	var result []Project
 	for data.Next() {
 		var each = Project{}
 
-		err := data.Scan(&each.ID, &each.Name, &each.Start_date, &each.End_date, &each.Desc, &each.Technologies, &each.Duration)
+		err := data.Scan(&each.ID, &each.Name, &each.Desc, &each.Technologies, &each.Duration)
 
 		if err != nil {
 			fmt.Println(err.Error())
 			return
 		}
 
-		each.StartDate = each.Start_date.Format("2 January 2006")
-		each.EndDate = each.End_date.Format("2 January 2006")
-
 		result = append(result, each)
 	}
-
-	fmt.Println(result)
 
 	card := map[string]interface{}{
 		"Add": result,
 	}
-	w.WriteHeader(http.StatusOK)
+
 	tmpl.Execute(w, card)
 }
 
@@ -94,15 +89,17 @@ func project(w http.ResponseWriter, r *http.Request) {
 }
 
 type Project struct {
-	ID           int
-	Name         string
-	Start_date   time.Time
-	End_date     time.Time
-	Duration     string
-	Desc         string
-	StartDate    string
-	EndDate      string
-	Technologies []string
+	ID                int
+	Name              string
+	Start_date        time.Time
+	End_date          time.Time
+	StartDate         string
+	EndDate           string
+	Duration          string
+	Desc              string
+	Technologies      []string
+	Format_Start_date string
+	Format_End_date   string
 }
 
 func addProject(w http.ResponseWriter, r *http.Request) {
@@ -115,7 +112,8 @@ func addProject(w http.ResponseWriter, r *http.Request) {
 	var start_date = r.PostForm.Get("startDate")
 	var end_date = r.PostForm.Get("endDate")
 	var desc = r.PostForm.Get("desc")
-	technologies := r.Form["technologies"]
+	var technologies []string
+	technologies = r.Form["technologies"]
 
 	layout := "2006-01-02"
 	dateStart, _ := time.Parse(layout, start_date)
@@ -162,16 +160,21 @@ func detail(w http.ResponseWriter, r *http.Request) {
 
 	id, _ := strconv.Atoi(mux.Vars(r)["id"])
 
-	err = connection.Conn.QueryRow(context.Background(), "SELECT id, name, start_date, end_date, description, technologies, duration FROM blog WHERE id=$1", id).Scan(
+	err = connection.Conn.QueryRow(context.Background(), "SELECT id, name, start_date::timestamp::string, end_date::timestamp::string, description, technologies, duration FROM blog WHERE id=$1", id).Scan(
 		&Detail.ID, &Detail.Name, &Detail.StartDate, &Detail.EndDate, &Detail.Desc, &Detail.Technologies, &Detail.Duration)
+
+	// fmt.Printf("%T %v", id, id)
+	// fmt.Println(err)
+	fmt.Println(Detail)
 
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(err.Error()))
+		return
 	}
 
-	Detail.StartDate = Detail.Start_date.Format("2 January 2006")
-	Detail.EndDate = Detail.End_date.Format("2 January 2006")
+	Detail.Format_Start_date = Detail.Start_date.Format("2 January 2006")
+	Detail.Format_End_date = Detail.End_date.Format("2 January 2006")
 
 	data := map[string]interface{}{
 		"Details": Detail,
@@ -204,7 +207,8 @@ func editProject(w http.ResponseWriter, r *http.Request) {
 	var start_date = r.PostForm.Get("startDate")
 	var end_date = r.PostForm.Get("endDate")
 	var desc = r.PostForm.Get("desc")
-	technologies := r.Form["technologies"]
+	var technologies []string
+	technologies = r.Form["technologies"]
 
 	layout := "2006-01-02"
 	dateStart, _ := time.Parse(layout, start_date)
@@ -227,10 +231,11 @@ func editProject(w http.ResponseWriter, r *http.Request) {
 		duration = "0 Days"
 	}
 
-	_, err = connection.Conn.Exec(context.Background(), "UPDATE blog SET id=$1, name=$2, start_date=$3, end_date=$4, description=$5, technologies=$6, duration=$7 WHERE id=$1", id, name, start_date, end_date, desc, technologies, duration)
+	_, err = connection.Conn.Exec(context.Background(), "UPDATE blog SET name=$1, start_date=$2, end_date=$3, description=$4, technologies=$5, duration=$6 WHERE id=$7", name, start_date, end_date, desc, technologies, duration, id)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(err.Error()))
+		return
 	}
 
 	http.Redirect(w, r, "/", http.StatusMovedPermanently)
@@ -247,16 +252,18 @@ func update(w http.ResponseWriter, r *http.Request) {
 	var Edit = Project{}
 	id, _ := strconv.Atoi(mux.Vars(r)["id"])
 
-	err = connection.Conn.QueryRow(context.Background(), "SELECT id, name, start_date, end_date, description, technologies, duration FROM blog WHERE id=$1", id).Scan(
-		&Edit.ID, &Edit.Name, &Edit.StartDate, &Edit.EndDate, &Edit.Desc, &Edit.Technologies, &Edit.Duration)
+	err = connection.Conn.QueryRow(context.Background(), "SELECT id, name, start_date::varchar, end_date::varchar, description, duration FROM blog WHERE id=$1", id).Scan(
+		&Edit.ID, &Edit.Name, &Edit.StartDate, &Edit.EndDate, &Edit.Desc, &Edit.Duration)
+
+	fmt.Println(Edit.Start_date)
+
+	Edit.Format_Start_date = Edit.Start_date.Format("2006-01-02")
+	Edit.Format_End_date = Edit.End_date.Format("2006-01-02")
 
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(err.Error()))
 	}
-
-	Edit.StartDate = Edit.Start_date.Format("2 January 2006")
-	Edit.EndDate = Edit.End_date.Format("2 January 2006")
 
 	data := map[string]interface{}{
 		"Id":   id,
